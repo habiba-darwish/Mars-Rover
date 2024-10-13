@@ -1,62 +1,89 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(express.static('public')); // Serve static files from the public directory
 
+// Class representing the point (rover)
 class Point {
     constructor(x, y, direction) {
         this.x = x;
         this.y = y;
-        this.direction = direction; // For example: 'N', 'E', 'S', 'W' for cardinal directions.
+        this.direction = direction; // Cardinal directions: 'North', 'East', 'South', 'West'
     }
 }
 
+// Offsets for moving in each direction
 const moveOffsets = {
-    'N': { dx: 0, dy: 1 },
-    'E': { dx: 1, dy: 0 },
-    'S': { dx: 0, dy: -1 },
-    'W': { dx: -1, dy: 0 }
+    'North': { dx: 0, dy: 1 },
+    'East': { dx: 1, dy: 0 },
+    'South': { dx: 0, dy: -1 },
+    'West': { dx: -1, dy: 0 }
 };
 
+// Turning directions
 const turnLeft = {
-    'N': 'W',
-    'E': 'N',
-    'S': 'E',
-    'W': 'S'
+    'North': 'West',
+    'East': 'North',
+    'South': 'East',
+    'West': 'South'
 };
 
 const turnRight = {
-    'N': 'E',
-    'E': 'S',
-    'S': 'W',
-    'W': 'N'
+    'North': 'East',
+    'East': 'South',
+    'South': 'West',
+    'West': 'North'
 };
 
-// Function to process the commands
-function processCommands(commands) {
-    let p = new Point(4, 2, 'E');
+// Function to create a new Point
+function createPoint(x = 0, y = 0, direction = 'North') {
+    return new Point(x, y, direction);
+}
 
-    for (let c of commands) {
-        if (c === 'F' || c === 'B') {
-            // Calculate movement based on direction
-            const offset = moveOffsets[p.direction];
-            p.x += (c === 'F' ? offset.dx : -offset.dx); // Forward or Backward in x
-            p.y += (c === 'F' ? offset.dy : -offset.dy); // Forward or Backward in y
-        } else if (c === 'L') {
-            // Rotate left
-            p.direction = turnLeft[p.direction];
-        } else if (c === 'R') {
-            // Rotate right
-            p.direction = turnRight[p.direction];
+// Function to move the rover
+function moveRover(point, command) {
+    const offset = moveOffsets[point.direction];
+    // if (command === 'F') {
+    //     point.x += offset.dx; // Move forward in x
+    //     point.y += offset.dy; // Move forward in y
+    // } else if (command === 'B') {
+    //     point.x -= offset.dx; // Move backward in x
+    //     point.y -= offset.dy; // Move backward in y
+    // }
+    point.x += (command === 'F' ? offset.dx : -offset.dx); // Forward or Backward in x
+    point.y += (command === 'F' ? offset.dy : -offset.dy); // Forward or Backward in y
+}
+
+// Function to turn the rover
+function turnRover(point, command) {
+    // if (command === 'L') {
+    //     point.direction = turnLeft[point.direction]; // Turn left
+    // } else if (command === 'R') {
+    //     point.direction = turnRight[point.direction]; // Turn right
+    // }
+
+    point.direction = (command ==='L'? turnLeft[point.direction] : turnRight[point.direction] );
+}
+
+// Function to process commands
+function processCommands(commands) {
+    const rover = createPoint(); // Create a new rover instance
+
+    for (const command of commands) {
+        if (['F', 'B'].includes(command)) {
+            moveRover(rover, command); // Move the rover
+        } else if (command === 'L' || command === 'R') {
+            turnRover(rover, command); // Turn the rover
         } else {
-            return { error: "Invalid command!" };
+            return { error: "Invalid command!" }; // Handle invalid commands
         }
     }
 
-    return { x: p.x, y: p.y, direction: p.direction };
+    return { x: rover.x, y: rover.y, direction: rover.direction }; // Return the final state of the rover
 }
 
 // API endpoint to process commands

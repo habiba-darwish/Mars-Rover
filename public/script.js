@@ -16,7 +16,7 @@ document.getElementById('submit').addEventListener('click', async () => {
     if (result.error) {
         resultDiv.innerHTML = `<span style="color: red;">${result.error}</span>`;
     } else {
-        resultDiv.innerHTML = `(${result.x}, ${result.y}) ${result.direction}`;
+        resultDiv.innerHTML = `(${result.x}, ${result.y}, ${result.direction})`;
     }
 });
 
