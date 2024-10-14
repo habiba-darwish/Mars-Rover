@@ -1,4 +1,3 @@
-# Mars-Rover
 # Mars Rover API
 
 ## Overview
