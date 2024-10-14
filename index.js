@@ -44,28 +44,33 @@ function createPoint(x = 0, y = 0, direction = 'North') {
     return new Point(x, y, direction);
 }
 
-// Function to move the rover
-function moveRover(point, command) {
-    const offset = moveOffsets[point.direction];
+// Command functions
+const commands = {
+    'F': (point) => {
+        const offset = moveOffsets[point.direction];
+        point.x += offset.dx; // Move forward in x
+        point.y += offset.dy; // Move forward in y
+    },
+    'B': (point) => {
+        const offset = moveOffsets[point.direction];
+        point.x -= offset.dx; // Move backward in x
+        point.y -= offset.dy; // Move backward in y
+    },
+    'L': (point) => {
+        point.direction = turnLeft[point.direction]; // Turn left
+    },
+    'R': (point) => {
+        point.direction = turnRight[point.direction]; // Turn right
+    },
+};
 
-    point.x += (command === 'F' ? offset.dx : -offset.dx); // Forward or Backward in x
-    point.y += (command === 'F' ? offset.dy : -offset.dy); // Forward or Backward in y
-}
-
-// Function to turn the rover
-function turnRover(point, command) {
-    point.direction = (command ==='L'? turnLeft[point.direction] : turnRight[point.direction] );
-}
-
-// Function to process commands
-function processCommands(commands) {
+// Higher-order function to process commands
+function processCommands(commandsArray) {
     const rover = createPoint(); // Create a new rover instance
 
-    for (const command of commands) {
-        if (['F', 'B'].includes(command)) {
-            moveRover(rover, command); // Move the rover
-        } else if (command === 'L' || command === 'R') {
-            turnRover(rover, command); // Turn the rover
+    for (const command of commandsArray) {
+        if (commands[command]) {
+            commands[command](rover); // Call the command function
         } else {
             return { error: "Invalid command!" }; // Handle invalid commands
         }
@@ -73,6 +78,7 @@ function processCommands(commands) {
 
     return { x: rover.x, y: rover.y, direction: rover.direction }; // Return the final state of the rover
 }
+
 
 // API endpoint to process commands
 app.post('/api/commands', (req, res) => {
