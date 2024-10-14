@@ -1,8 +1,4 @@
 # Mars-Rover
-Here's a well-defined `README.md` file for your Mars Rover application. This document provides an overview, installation instructions, usage details, and more.
-
----
-
 # Mars Rover API
 
 ## Overview
