@@ -47,25 +47,13 @@ function createPoint(x = 0, y = 0, direction = 'North') {
 // Function to move the rover
 function moveRover(point, command) {
     const offset = moveOffsets[point.direction];
-    // if (command === 'F') {
-    //     point.x += offset.dx; // Move forward in x
-    //     point.y += offset.dy; // Move forward in y
-    // } else if (command === 'B') {
-    //     point.x -= offset.dx; // Move backward in x
-    //     point.y -= offset.dy; // Move backward in y
-    // }
+
     point.x += (command === 'F' ? offset.dx : -offset.dx); // Forward or Backward in x
     point.y += (command === 'F' ? offset.dy : -offset.dy); // Forward or Backward in y
 }
 
 // Function to turn the rover
 function turnRover(point, command) {
-    // if (command === 'L') {
-    //     point.direction = turnLeft[point.direction]; // Turn left
-    // } else if (command === 'R') {
-    //     point.direction = turnRight[point.direction]; // Turn right
-    // }
-
     point.direction = (command ==='L'? turnLeft[point.direction] : turnRight[point.direction] );
 }
 
@@ -94,6 +82,11 @@ app.post('/api/commands', (req, res) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+    });
+}
+module.exports = {
+    processCommands // Export the function for testing
+};
