@@ -136,6 +136,5 @@ mars-rover-api/
 ## Optional Enhancements
 
 - **REST API**: The application provides an API endpoint to process commands sent to the rover.
-- **Functional Programming**: The command processing can be further optimized using higher-order functions.
 - **Customization**: You can modify the initial coordinates and direction by editing the `createPoint` function in the code.
   
