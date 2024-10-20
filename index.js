@@ -40,11 +40,12 @@ const turnRight = {
 };
 
 // Example obstacle set (predefined)
-const obstacleSet = new Set(['1,4', '3,5', '7,4']);
+const obstacleSet = new Set(['1,4', '3,5', '7,4','2,3']);
 
 function createPoint(x = 0, y = 0, direction = 'North') {
     return new Point(x, y, direction);
 }
+
 // Function to move the rover
 function moveRover(point, offsetX, offsetY) {
     point.x += offsetX;
@@ -63,43 +64,41 @@ function checkAndMove(point, offsetX, offsetY) {
     return false; // No need to stop
 }
 
-// Function to execute commands (F, B, L, R)
-function executeCommand(command, point) {
-    const commandHandlers = {
-        'F': () => checkAndMove(point, moveOffsets[point.direction].dx, moveOffsets[point.direction].dy),
-        'B': () => checkAndMove(point, -moveOffsets[point.direction].dx, -moveOffsets[point.direction].dy),
-        'L': () => {
-            point.direction = turnLeft[point.direction];
-            return false; // Turning doesn't stop the rover
-        },
-        'R': () => {
-            point.direction = turnRight[point.direction];
-            return false; // Turning doesn't stop the rover
-        }
-    };
+// Command handlers with `checkAndMove`
+const commands = {
+    'F': (point) => checkAndMove(point, moveOffsets[point.direction].dx, moveOffsets[point.direction].dy),
+    'B': (point) => checkAndMove(point, -moveOffsets[point.direction].dx, -moveOffsets[point.direction].dy),
+    'L': (point) => {
+        point.direction = turnLeft[point.direction]; // Turn left
+    },
+    'R': (point) => {
+        point.direction = turnRight[point.direction]; // Turn right
+    }
+};
 
-    return commandHandlers[command] ? commandHandlers[command]() : { error: "Invalid command!" };
-}
-
-// Higher-order function to process commands with obstacle checking
+// Higher-order function to process commands
 function processCommands(commandsArray) {
     const rover = createPoint(); // Create a new rover instance
-    let stopped = false;
+    let status = 'OK'; // Default status
 
-    // Iterate over commands and process
     for (const command of commandsArray) {
-        if (executeCommand(command, rover)) {
-            stopped = true; // Stop as soon as an obstacle is hit
-            break;
+        if (commands[command]) {
+            const result = commands[command](rover);
+            if (result) {
+                status = 'STOPPED due to collision'; // If collision happens, update status and stop processing
+                break;
+            }
+        } else {
+            return { error: `Invalid command: ${command}` }; // Handle invalid commands
         }
     }
 
-    // Return the final result based on whether the rover stopped or not
+    // Return the final state of the rover
     return {
         x: rover.x,
         y: rover.y,
         direction: rover.direction,
-        status: stopped ? "STOPPED due to collision" : "OK"
+        status: status
     };
 }
 
@@ -118,7 +117,6 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 module.exports = {
-    processCommands, // Export the function for testing
-    executeCommand,  // Export individual functions if needed for testing
-    checkAndMove     // Export the movement and obstacle checking function
+    processCommands // Export the function for testing
+
 };

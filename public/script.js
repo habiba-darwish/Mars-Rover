@@ -22,8 +22,13 @@ document.getElementById('submitButton').addEventListener('click', async () => {
 
         const result = await response.json();
 
-        // Display the result in the specified format
-        resultOutput.textContent = `(${result.x}, ${result.y}) ${result.direction}\n${result.status}`;
+        // Check if the server returned an error related to invalid commands
+        if (result.error) {
+            resultOutput.textContent = `Error: ${result.error}`;
+        } else {
+            // Display the result in the specified format
+            resultOutput.textContent = `(${result.x}, ${result.y}) ${result.direction}\n${result.status}`;
+        }
     } catch (error) {
         resultOutput.textContent = `Error: ${error.message}`;
     }
