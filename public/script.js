@@ -1,4 +1,4 @@
-document.getElementById('submitButton').addEventListener('click', async () => {
+document.getElementById('submitCommandButton').addEventListener('click', async () => {
     const commandInput = document.getElementById('commandInput').value;
     const resultOutput = document.getElementById('resultOutput');
 
@@ -29,6 +29,48 @@ document.getElementById('submitButton').addEventListener('click', async () => {
             // Display the result in the specified format
             resultOutput.textContent = `(${result.x}, ${result.y}) ${result.direction}\n${result.status}`;
         }
+    } catch (error) {
+        resultOutput.textContent = `Error: ${error.message}`;
+    }
+});
+
+// Handle target submission
+document.getElementById('submitTargetButton').addEventListener('click', async () => {
+    const startX = parseInt(document.getElementById('startX').value);
+    const startY = parseInt(document.getElementById('startY').value);
+    const startDirection = document.getElementById('startDirection').value;
+    const targetX = parseInt(document.getElementById('targetX').value);
+    const targetY = parseInt(document.getElementById('targetY').value);
+    const resultOutput = document.getElementById('resultOutput');
+
+    // Clear the result output
+    resultOutput.textContent = 'Calculating commands...';
+
+    try {
+        // Send the target coordinates to the server
+        const response = await fetch('/api/moveToTarget', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                startX: startX,
+                startY: startY,
+                startDirection: startDirection,
+                targetX: targetX,
+                targetY: targetY
+            }),
+        });
+
+        // Handle the response
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+
+        // Display the command string returned by the server
+        resultOutput.textContent = `Commands to reach target: ${result.commands}`;
     } catch (error) {
         resultOutput.textContent = `Error: ${error.message}`;
     }

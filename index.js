@@ -7,7 +7,6 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(express.static('public')); // Serve static files from the public directory
 
-// Class representing the point (rover)
 class Point {
     constructor(x, y, direction) {
         this.x = x;
@@ -102,11 +101,85 @@ function processCommands(commandsArray) {
     };
 }
 
+
+
+function calculateCommands(startX, startY, startDirection, targetX, targetY) {
+    const rover = createPoint(startX, startY, startDirection);
+    let commands = '';
+
+    // Movement action mapping
+    const actions = {
+        'F': (dx, dy) => {
+            commands += 'F';
+            return checkAndMove(rover, dx, dy);
+        },
+        'B': (dx, dy) => {
+            commands += 'B';
+            return checkAndMove(rover, -dx, -dy);
+        },
+        'L': () => {
+            commands += 'L';
+            rover.direction = turnLeft[rover.direction]; // Update direction
+        },
+        'R': () => {
+            commands += 'R';
+            rover.direction = turnRight[rover.direction]; // Update direction
+        }
+    };
+
+    const directionActions = {
+        'North': { move: () => actions['F'](moveOffsets['North'].dx, moveOffsets['North'].dy) },
+        'South': { move: () => actions['B'](moveOffsets['South'].dx, moveOffsets['South'].dy) },
+        'East': { move: () => actions['F'](moveOffsets['East'].dx, moveOffsets['East'].dy) },
+        'West': { move: () => actions['B'](moveOffsets['West'].dx, moveOffsets['West'].dy) }
+    };
+
+    const turnMap = {
+        'North': { 'East': ['R'], 'West': ['L', 'L'], 'South': ['L'] },
+        'South': { 'East': ['L'], 'West': ['R'], 'North': ['L', 'L'] },
+        'East': { 'North': ['L'], 'South': ['R'], 'West': ['L', 'L'] },
+        'West': { 'North': ['R'], 'South': ['L'], 'East': ['L', 'L'] }
+    };
+
+    while (rover.x !== targetX || rover.y !== targetY) {
+        const targetDirection = getTargetDirection(rover, targetX, targetY); // Pass rover as argument
+
+        if (targetDirection) {
+            // Get required turns and execute them
+            const turns = turnMap[rover.direction][targetDirection] || [];
+            turns.forEach(turn => actions[turn]()); // Execute turns
+
+            // Move in the target direction
+            directionActions[targetDirection].move();
+        }
+    }
+
+    return commands; // Return the command string to reach the target
+}
+
+// Function to determine target direction
+const getTargetDirection = (rover, targetX, targetY) => {
+    if (rover.y < targetY) return 'North';
+    if (rover.y > targetY) return 'South';
+    if (rover.x < targetX) return 'East';
+    if (rover.x > targetX) return 'West';
+    return null; // Reached target
+};
+
+
+
 // API endpoint to process commands
 app.post('/api/commands', (req, res) => {
     const commands = req.body.commands;
     const result = processCommands(commands);
     res.json(result);
+});
+
+// API endpoint for target coordinate
+app.post('/api/moveToTarget', (req, res) => {
+    const { startX, startY, startDirection, targetX, targetY } = req.body;
+    const commandString = calculateCommands(startX, startY, startDirection, targetX, targetY);
+    res.json({ commands: commandString });
 });
 
 // Start the server
@@ -117,6 +190,6 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 module.exports = {
-    processCommands // Export the function for testing
-
+    processCommands,
+    calculateCommands // Export the function for testing
 };

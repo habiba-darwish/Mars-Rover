@@ -1,5 +1,5 @@
 // __tests__/rover.test.js
-const { processCommands } = require('../index'); // Adjust the path if necessary
+const { processCommands, calculateCommands } = require('../index');
 
 describe('Mars Rover Command Processing', () => {
     test('should move forward and return correct coordinates', () => {
@@ -38,5 +38,16 @@ describe('Mars Rover Command Processing', () => {
         const commands = ['R', 'F', 'F', 'L', 'F', 'F','F']; // Move forward to collision
         const result = processCommands(commands);
         expect(result).toEqual({ x: 2, y: 2, direction: 'North', status: 'STOPPED due to collision' }); // Stops at (0,4)
+    });
+});
+
+describe('Mars Rover Command Calculation', () => {
+    test('should calculate commands to move to (2,2) from (0,0) facing East', () => {
+        const result = calculateCommands(0, 0, 'East', 2, 2);
+        expect(result).toEqual('LFFRFF'); // Example expected command string to reach (2, 2)
+    });
+    test('should calculate commands to move to (2,1) from (-1,1) facing North', () => {
+        const result = calculateCommands(-1, -1, 'North', 2, 1);
+        expect(result).toEqual('FFRFFF'); // Example expected command string to reach (2, 2)
     });
 });
