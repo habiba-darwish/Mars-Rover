@@ -9,8 +9,35 @@
 <body>
     <div class="container">
         <h1>Mars Rover Controller</h1>
+
+        <!-- Command Input Section -->
         <textarea id="commandInput" placeholder="Enter commands (e.g., FFFLFFR)"></textarea>
-        <button id="submitButton">Submit Commands</button>
+        <button id="submitCommandButton">Submit Commands</button>
+
+        <!-- Target Input Section -->
+        <h2>Set Target Position</h2>
+        <label for="startX">Start X:</label>
+        <input type="number" id="startX" placeholder="e.g., 0">
+        
+        <label for="startY">Start Y:</label>
+        <input type="number" id="startY" placeholder="e.g., 0">
+
+        <label for="startDirection">Start Direction:</label>
+        <select id="startDirection">
+            <option value="North">North</option>
+            <option value="East">East</option>
+            <option value="South">South</option>
+            <option value="West">West</option>
+        </select><br>
+
+        <label for="targetX">Target X:</label>
+        <input type="number" id="targetX" placeholder="e.g., 5">
+        
+        <label for="targetY">Target Y:</label>
+        <input type="number" id="targetY" placeholder="e.g., 5">
+
+        <button id="submitTargetButton">Submit Target</button>
+
         <h2>Result:</h2>
         <pre id="resultOutput"></pre>
     </div>
