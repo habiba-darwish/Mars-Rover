@@ -39,7 +39,7 @@ const turnRight = {
 };
 
 // Example obstacle set (predefined)
-const obstacleSet = new Set(['1,4', '3,5', '7,4','2,3']);
+const obstacleSet = new Set(['3,5', '7,4','2,3']);
 
 function createPoint(x = 0, y = 0, direction = 'North') {
     return new Point(x, y, direction);
@@ -101,74 +101,152 @@ function processCommands(commandsArray) {
     };
 }
 
+// function calculateCommands(startX, startY, startDirection, targetX, targetY) {
+//     const rover = createPoint(startX, startY, startDirection);
+//     let commands = '';
 
+//     const directionMovements = {
+//         'North': { dx: 0, dy: 1 },
+//         'South': { dx: 0, dy: -1 },
+//         'East': { dx: 1, dy: 0 },
+//         'West': { dx: -1, dy: 0 }
+//     };
 
+//     const turnMap = {
+//         'North': { 'East': ['R'], 'West': ['L'], 'South': ['L', 'L'] },
+//         'South': { 'East': ['L'], 'West': ['R'], 'North': ['L', 'L'] },
+//         'East': { 'North': ['L'], 'South': ['R'], 'West': ['L', 'L'] },
+//         'West': { 'North': ['R'], 'South': ['L'], 'East': ['L', 'L'] }
+//     };
+
+//     const actions = {
+//         'F': () => {
+//             const dx = directionMovements[rover.direction].dx;
+//             const dy = directionMovements[rover.direction].dy;
+//             if (!checkAndMove(rover, dx, dy)) {
+//                 commands += 'F';
+//                 rover.x += dx;
+//                 rover.y += dy;
+//                 return false;
+//             } else {
+//                 return true;
+//             }
+//         },
+//         'L': () => {
+//             commands += 'L';
+//             rover.direction = turnLeft[rover.direction];
+//         },
+//         'R': () => {
+//             commands += 'R';
+//             rover.direction = turnRight[rover.direction];
+//         }
+//     };
+
+//     function processCommandsWrapper(commandsToProcess) {
+//         const result = processCommands(commandsToProcess.split(''));
+//         if (result.status === 'STOPPED due to collision') {
+//             return true;
+//         }
+//         rover.x = result.x;
+//         rover.y = result.y;
+//         rover.direction = result.direction;
+//         return false;
+//     }
+
+//     function getTargetDirection(rover, targetX, targetY) {
+//         if (rover.x < targetX) return 'East';
+//         if (rover.x > targetX) return 'West';
+//         if (rover.y < targetY) return 'North';
+//         if (rover.y > targetY) return 'South';
+//         return null;
+//     }
+
+//     while (rover.x !== targetX || rover.y !== targetY) {
+//         const targetDirection = getTargetDirection(rover, targetX, targetY);
+//         const turns = turnMap[rover.direction][targetDirection] || [];
+//         turns.forEach(turn => actions[turn]());
+
+//         if (actions['F']()) {
+//             // Obstacle detected, adding sequence RFLFF and checking
+//             actions['R']();
+//             if (!actions['F']()) {
+//                 actions['L']();
+//                 if (!actions['F']()) {
+//                     actions['F']();
+//                     actions['F']();
+//                 }
+//             }
+//             processCommandsWrapper(commands);
+//         } else {
+//             processCommandsWrapper(commands);
+//         }
+//     }
+
+//     return commands;
+// }
 function calculateCommands(startX, startY, startDirection, targetX, targetY) {
-    const rover = createPoint(startX, startY, startDirection);
-    let commands = '';
+    const directionMovements = {
+        'North': { dx: 0, dy: 1 },
+        'South': { dx: 0, dy: -1 },
+        'East': { dx: 1, dy: 0 },
+        'West': { dx: -1, dy: 0 }
+    };
 
-    // Movement action mapping
-    const actions = {
-        'F': (dx, dy) => {
-            commands += 'F';
-            return checkAndMove(rover, dx, dy);
-        },
-        'B': (dx, dy) => {
-            commands += 'B';
-            return checkAndMove(rover, -dx, -dy);
-        },
-        'L': () => {
-            commands += 'L';
-            rover.direction = turnLeft[rover.direction]; // Update direction
-        },
-        'R': () => {
-            commands += 'R';
-            rover.direction = turnRight[rover.direction]; // Update direction
+    const turnLeft = { 'North': 'West', 'West': 'South', 'South': 'East', 'East': 'North' };
+    const turnRight = { 'North': 'East', 'East': 'South', 'South': 'West', 'West': 'North' };
+
+    function move(point, direction) {
+        const newPoint = { ...point };
+        newPoint.x += directionMovements[direction].dx;
+        newPoint.y += directionMovements[direction].dy;
+        return newPoint;
+    }
+
+    function isObstacle(point) {
+        return obstacleSet.has(`${point.x},${point.y}`);
+    }
+
+    const initialPoint = createPoint(startX, startY, startDirection);
+    const queue = [{ point: initialPoint, commands: '' }];
+    const visited = new Set([`${startX},${startY},${startDirection}`]);
+
+    while (queue.length > 0) {
+        const { point, commands } = queue.shift();
+
+        if (point.x === targetX && point.y === targetY) {
+            return commands; // Target reached
         }
-    };
 
-    const directionActions = {
-        'North': { move: () => actions['F'](moveOffsets['North'].dx, moveOffsets['North'].dy) },
-        'South': { move: () => actions['B'](moveOffsets['South'].dx, moveOffsets['South'].dy) },
-        'East': { move: () => actions['F'](moveOffsets['East'].dx, moveOffsets['East'].dy) },
-        'West': { move: () => actions['B'](moveOffsets['West'].dx, moveOffsets['West'].dy) }
-    };
+        // Forward
+        const newPointF = move(point, point.direction);
+        if (!isObstacle(newPointF) && !visited.has(`${newPointF.x},${newPointF.y},${point.direction}`)) {
+            queue.push({ point: newPointF, commands: commands + 'F' });
+            visited.add(`${newPointF.x},${newPointF.y},${point.direction}`);
+        }
 
-    const turnMap = {
-        'North': { 'East': ['R'], 'West': ['L', 'L'], 'South': ['L'] },
-        'South': { 'East': ['L'], 'West': ['R'], 'North': ['L', 'L'] },
-        'East': { 'North': ['L'], 'South': ['R'], 'West': ['L', 'L'] },
-        'West': { 'North': ['R'], 'South': ['L'], 'East': ['L', 'L'] }
-    };
+        // Left turn
+        const newDirectionL = turnLeft[point.direction];
+        if (!visited.has(`${point.x},${point.y},${newDirectionL}`)) {
+            queue.push({ point: { ...point, direction: newDirectionL }, commands: commands + 'L' });
+            visited.add(`${point.x},${point.y},${newDirectionL}`);
+        }
 
-    while (rover.x !== targetX || rover.y !== targetY) {
-        const targetDirection = getTargetDirection(rover, targetX, targetY); // Pass rover as argument
-
-        if (targetDirection) {
-            // Get required turns and execute them
-            const turns = turnMap[rover.direction][targetDirection] || [];
-            turns.forEach(turn => actions[turn]()); // Execute turns
-
-            // Move in the target direction
-            directionActions[targetDirection].move();
+        // Right turn
+        const newDirectionR = turnRight[point.direction];
+        if (!visited.has(`${point.x},${point.y},${newDirectionR}`)) {
+            queue.push({ point: { ...point, direction: newDirectionR }, commands: commands + 'R' });
+            visited.add(`${point.x},${point.y},${newDirectionR}`);
         }
     }
 
-    return commands; // Return the command string to reach the target
+    return ''; // No path found
 }
 
-// Function to determine target direction
-const getTargetDirection = (rover, targetX, targetY) => {
-    if (rover.y < targetY) return 'North';
-    if (rover.y > targetY) return 'South';
-    if (rover.x < targetX) return 'East';
-    if (rover.x > targetX) return 'West';
-    return null; // Reached target
-};
 
 
 
-// API endpoint to process commands
+
+
 app.post('/api/commands', (req, res) => {
     const commands = req.body.commands;
     const result = processCommands(commands);

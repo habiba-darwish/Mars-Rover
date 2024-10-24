@@ -42,12 +42,8 @@ document.getElementById('submitTargetButton').addEventListener('click', async ()
     const targetX = parseInt(document.getElementById('targetX').value);
     const targetY = parseInt(document.getElementById('targetY').value);
     const resultOutput = document.getElementById('resultOutput');
-
-    // Clear the result output
     resultOutput.textContent = 'Calculating commands...';
-
     try {
-        // Send the target coordinates to the server
         const response = await fetch('/api/moveToTarget', {
             method: 'POST',
             headers: {
@@ -61,15 +57,10 @@ document.getElementById('submitTargetButton').addEventListener('click', async ()
                 targetY: targetY
             }),
         });
-
-        // Handle the response
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
-
         const result = await response.json();
-
-        // Display the command string returned by the server
         resultOutput.textContent = `Commands to reach target: ${result.commands}`;
     } catch (error) {
         resultOutput.textContent = `Error: ${error.message}`;
