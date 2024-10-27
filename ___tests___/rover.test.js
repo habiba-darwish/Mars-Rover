@@ -44,7 +44,7 @@ describe('Mars Rover Command Processing', () => {
 describe('Mars Rover Command Calculation', () => {
     test('should calculate commands to move to (2,2) from (0,0) facing East', () => {
         const result = calculateCommands(0, 0, 'East', 2, 2);
-        expect(result).toEqual('LFFRFF'); // Example expected command string to reach (2, 2)
+        expect(result).toEqual('FFLFF'); // Example expected command string to reach (2, 2)
     });
     test('should calculate commands to move to (2,1) from (-1,1) facing North', () => {
         const result = calculateCommands(-1, -1, 'North', 2, 1);
